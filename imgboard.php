@@ -56,7 +56,7 @@ foreach ($includes as $include) {
 	include $include;
 }
 
-if (TINYIB_TRIPSEED == '' || TINYIB_ADMINPASS == '') {
+if (TINYIB_TRIPSEED == '' || empty(unserialize(TINYIB_ADMINPASS))) {
 	fancyDie('TINYIB_TRIPSEED and TINYIB_ADMINPASS must be configured');
 }
 

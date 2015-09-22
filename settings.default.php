@@ -9,8 +9,8 @@
 # Set TINYIB_DBMODE to a MySQL-related mode if it's available.  By default it's set to flatfile, which can be very slow.
 
 // Administrator/moderator credentials
-define('TINYIB_ADMINPASS', "");       // Administrators have full access to the board
-define('TINYIB_MODPASS', "");         // Moderators only have access to delete (and moderate if TINYIB_REQMOD is set) posts  ["" to disable]
+define('TINYIB_ADMINPASS', serialize(array()));       // Administrators have full access to the board
+define('TINYIB_MODPASS', serialize(array()));         // Moderators only have access to delete (and moderate if TINYIB_REQMOD is set) posts  [Leave empty to disable]
 
 // Board description and behavior
 define('TINYIB_BOARD', "b");          // Unique identifier for this board using only letters and numbers
