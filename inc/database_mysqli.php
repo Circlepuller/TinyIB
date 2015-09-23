@@ -17,6 +17,12 @@ if (!$db_selected) {
 }
 mysqli_query($link, "SET NAMES 'utf8'");
 
+// Create the users table if it does not exist, as well as a default user
+if (mysqli_num_rows(mysqli_query($link, "SHOW TABLES LIKE '" . TINYIB_DBUSERS . "'")) == 0) {
+	mysqli_query($link, $users_sql);
+	insertUser(array('name' => 'admin', 'password' => password_hash(TINYIB_DEFAULTPASS, PASSWORD_BCRYPT), 'admin' => 1));
+}
+
 // Create the posts table if it does not exist
 if (mysqli_num_rows(mysqli_query($link, "SHOW TABLES LIKE '" . TINYIB_DBPOSTS . "'")) == 0) {
 	mysqli_query($link, $posts_sql);
@@ -25,6 +31,23 @@ if (mysqli_num_rows(mysqli_query($link, "SHOW TABLES LIKE '" . TINYIB_DBPOSTS . 
 // Create the bans table if it does not exist
 if (mysqli_num_rows(mysqli_query($link, "SHOW TABLES LIKE '" . TINYIB_DBBANS . "'")) == 0) {
 	mysqli_query($link, $bans_sql);
+}
+
+# User Functions
+function insertUser($user) {
+	global $link;
+	mysqli_query($link, "INSERT INTO `" . TINYIB_DBUSERS . "` (`name`, `password`, `admin`) VALUES ('" . mysqli_real_escape_string($link, $user['name']) . "', '" . mysqli_real_escape_string($link, $user['password']) . "', " . boolval($user['admin']) . ")");
+	return mysqli_insert_id($link);
+}
+
+function userByName($name) {
+	global $link;
+	$result = mysqli_query($link, "SELECT * FROM `" . TINYIB_DBUSERS . "` WHERE `name` = '" . mysqli_real_escape_string($link, $name) . "' LIMIT 1");
+	if ($result) {
+		while ($user = mysqli_fetch_assoc($result)) {
+			return $user;
+		}
+	}
 }
 
 # Post Functions

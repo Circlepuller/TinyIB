@@ -3,6 +3,15 @@ if (!defined('TINYIB_BOARD')) {
 	die('');
 }
 
+$users_sql = "CREATE TABLE `" . TINYIB_DBUSERS . "` (
+	`id` mediumint(7) unsigned NOT NULL auto_increment,
+	`name` varchar(75) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+	`password` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+	`admin` tinyint(1) NOT NULL default '0',
+	PRIMARY KEY (`id`),
+	UNIQUE(`name`)
+)";
+
 $posts_sql = "CREATE TABLE `" . TINYIB_DBPOSTS . "` (
 	`id` mediumint(7) unsigned NOT NULL auto_increment,
 	`parent` mediumint(7) unsigned NOT NULL,
@@ -222,17 +231,21 @@ function deletePostImages($post) {
 }
 
 function checkCAPTCHA() {
-	if (!TINYIB_CAPTCHA) {
+	if (!TINYIB_RECAPTCHA) {
 		return; // CAPTCHA is disabled
 	}
 
-	$captcha = isset($_POST['captcha']) ? strtolower(trim($_POST['captcha'])) : '';
-	$captcha_solution = isset($_SESSION['tinyibcaptcha']) ? strtolower(trim($_SESSION['tinyibcaptcha'])) : '';
+	$captcha = isset($_POST['g-recaptcha-response']) ? $_POST['g-recaptcha-response'] : '';
 
 	if ($captcha == '') {
-		fancyDie('Please enter the CAPTCHA text.');
-	} else if ($captcha != $captcha_solution) {
-		fancyDie('Incorrect CAPTCHA text entered.  Please try again.<br>Click the image to retrieve a new CAPTCHA.');
+		fancyDie('There was an error with verification. Please try again.');
+	}
+	
+	$response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . TINYIB_RECAPTCHAPRIVATE . "&remoteip=" . $_SERVER['REMOTE_ADDR']), true);
+
+	// TODO: Add better errors!
+	if (!$response['success']) {
+		fancyDie('There was an error with verification. Please try again.');
 	}
 }
 
@@ -269,21 +282,21 @@ function checkMessageSize() {
 function manageCheckLogIn() {
 	$loggedin = false;
 	$isadmin = false;
-	if (isset($_POST['password'])) {
-		if (in_array($_POST['password'], unserialize(TINYIB_ADMINPASS), true)) {
-			$_SESSION['tinyib'] = $_POST['password'];
-		} elseif (!empty(unserialize(TINYIB_MODPASS)) && in_array($_POST['password'], unserialize(TINYIB_MODPASS), true)) {
-			$_SESSION['tinyib'] = $_POST['password'];
+	if (isset($_POST['name']) && isset($_POST['password'])) {
+		$user = userByName($_POST['name']);
+
+		if (password_verify($_POST['password'], $user['password'])) {
+			$_SESSION['tinyib'] = serialize($user);
 		}
 	}
 
 	if (isset($_SESSION['tinyib'])) {
-		if (in_array($_SESSION['tinyib'], unserialize(TINYIB_ADMINPASS), true)) {
+		$user = unserialize($_SESSION['tinyib']);
+
+		if ($user === userByName($user['name'])) {
 			$loggedin = true;
-			$isadmin = true;
-		} elseif (!empty(unserialize(TINYIB_MODPASS)) && in_array($_SESSION['tinyib'], unserialize(TINYIB_MODPASS), true)) {
-			$loggedin = true;
-		}
+			$isadmin = $user['admin'];
+		}	
 	}
 
 	return array($loggedin, $isadmin);

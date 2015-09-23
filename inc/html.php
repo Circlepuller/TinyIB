@@ -22,6 +22,15 @@ EOF;
 		<link rel="stylesheet" type="text/css" href="css/global.css">
 		<link rel="stylesheet" type="text/css" href="css/futaba.css" title="Futaba">
 		<link rel="alternate stylesheet" type="text/css" href="css/burichan.css" title="Burichan">
+EOF;
+
+	if (TINYIB_RECAPTCHA) {
+		$return .= <<<EOF
+		<script src="https://www.google.com/recaptcha/api.js"></script>
+EOF;
+	}
+
+	$return .= <<<EOF
 		<script src="js/jquery.js"></script>
 		<script src="js/tinyib.js"></script>
 	</head>
@@ -271,17 +280,18 @@ EOF;
 	$file_input_html = '';
 	$embed_input_html = '';
 	$unique_posts_html = '';
-
 	$captcha_html = '';
-	if (TINYIB_CAPTCHA) {
+
+	if (TINYIB_RECAPTCHA) {
 		$captcha_html = <<<EOF
 					<tr>
 						<td class="postblock">
-							CAPTCHA
+							Verification
 						</td>
 						<td>
-							<input type="text" name="captcha" id="captcha" size="6" accesskey="c" autocomplete="off">&nbsp;&nbsp;(enter the text below)<br>
-							<img id="captchaimage" src="inc/captcha.php" width="175" height="55" alt="CAPTCHA" onclick="javascript:reloadCAPTCHA()" style="margin-top: 5px;cursor: pointer;">
+EOF;
+		$captcha_html .= '<div class="g-recaptcha" data-sitekey="' . TINYIB_RECAPTCHAPUBLIC . '"></div>';
+		$captcha_html .= <<<EOF
 						</td>
 					</tr>
 EOF;
@@ -524,9 +534,10 @@ function manageLogInForm() {
 	return <<<EOF
 	<form id="tinyib" name="tinyib" method="post" action="?manage">
 	<fieldset>
-	<legend align="center">Enter an administrator or moderator password</legend>
+	<legend align="center">Please login to continue</legend>
 	<div class="login">
-	<input type="password" id="password" name="password"><br>
+	<input type="text" id="name" name="name" placeholder="Name"><br>
+	<input type="password" id="password" name="password" placeholder="Password"><br>
 	<input type="submit" value="Log In" class="managebutton">
 	</div>
 	</fieldset>

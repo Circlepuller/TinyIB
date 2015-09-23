@@ -52,12 +52,12 @@ if (in_array(TINYIB_DBMODE, array('flatfile', 'mysql', 'mysqli', 'sqlite', 'pdo'
 	fancyDie("Unknown database mode specified");
 }
 
-foreach ($includes as $include) {
-	include $include;
+if (TINYIB_TRIPSEED == '' || TINYIB_DEFAULTPASS == '') {
+	fancyDie('TINYIB_TRIPSEED and TINYIB_DEFAULTPASS must be configured');
 }
 
-if (TINYIB_TRIPSEED == '' || empty(unserialize(TINYIB_ADMINPASS))) {
-	fancyDie('TINYIB_TRIPSEED and TINYIB_ADMINPASS must be configured');
+foreach ($includes as $include) {
+	include $include;
 }
 
 $redirect = true;
